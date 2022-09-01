@@ -1,0 +1,67 @@
+---
+title: "Task 2 DTS 350 Saplys"
+author: "Karis Saplys"
+date: "2022-08-31"
+output: 
+  html_document:
+    theme: cosmo
+    keep_md: true
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r loading Knitr package}
+library(knitr)
+```
+
+```{r computation}
+sin(pi/4)
+```
+
+using R as a calculator here in this case
+
+```{r assignment operator}
+x <- 10/3
+
+```
+
+
+```{r sequence}
+MySequence <- seq(1,50, length.out = 7)
+MySequence
+```
+
+sequence runs from 1 to 50, and contains 7 equally spaced out numbers
+
+```{r vector}
+my_vector <- c(1, 5, 12, 31, 19)
+```
+
+vector created using the compile/concatonate function
+
+```{r determining result}
+7+5==12
+```
+
+== asks whether the preceding statement is TRUE or FALSE
+
+```{r or statement}
+(7+4=12)|(5-4=1)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
