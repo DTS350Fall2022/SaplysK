@@ -1,0 +1,102 @@
+---
+title: "Task 5 Karis Saplys"
+author: "Karis Saplys"
+date: "2022-09-05"
+output: 
+  html_document:
+    theme: cosmo
+    keep_md: true
+editor_options: 
+  chunk_output_type: console
+code_folding: 'hide'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r installing various packages}
+library(readr)
+library(tidyverse)
+library(knitr)
+library(downloader)
+library(dplyr)
+```
+
+```{r importing data 1}
+SoloData <- read_csv("solo-artist-followers.csv")
+SoloData
+str(SoloData)
+```
+
+Data imported correctly as characters.
+
+```{r importing data 2}
+BillboardData <- read_csv("billboard-hits.csv")
+BillboardData
+str("BillboardData")
+```
+
+Data imported correctly as characters.
+
+```{r removing singers without 6 top 100 hits}
+sixtop100hits <- BillboardData %>%
+  group_by(name) %>%
+  filter(n() > 6, band != "")
+sixtop100hits
+```
+
+Singers without 6 top 100 hits removed.
+
+```{r finding bands}
+
+sixtop100_bands <- BillboardData %>%
+  group_by(name) %>%
+  filter(name %in% sixtop100hits$band)
+sixtop100_bands
+```
+
+Corresponding data in the data set for the top singers’ bands.
+
+```{r}
+ggplot(data = sixtop100hits, mapping=aes(x = peak_date, y = peak_rank, color = name, group = name)) +
+  geom_point() +
+  geom_line() +
+  geom_point(data = sixtop100_bands, color = "black") +
+  geom_line(data = sixtop100_bands, color = "black", linetype = "dotted") +
+  facet_wrap(~ band, scales = "free") +
+  xlab("peak_date") + ylab("peak_rank") +
+  theme_bw()
+```
+
+From the above plots, I can observe that in general, most bands experienced peak popularity between 2014 and 2019, with a few exceptions. Destiny's CHild seems to be among the most consistent, with periodic spikes likely corresponding to new releases of music. 
+
+```{r source 1}
+climate_data <- read_csv("Climate Data.csv")
+head(climate_data)
+str(climate_data)
+```
+https://www.kaggle.com/datasets/csafrit2/latest-global-temperatures 
+
+The above dataset contains NOAA satelite data measuring natural microwave thermal emissions from various layers of the atmosphere. The data comes from 15 different instruments, and is updated every year to show changes in atmospheric temperatures. 
+
+```{r source 2}
+rent_index1 <- read_csv("price.csv")
+rent_index2 <- read_csv("pricepersqft.csv")
+head(rent_index1)
+head(rent_index2)
+str(rent_index1)
+str(rent_index2)
+```
+https://www.kaggle.com/datasets/zillow/rent-index
+
+Zillow's sector-leading economics team compiles various real estate, rental and mortgage-related metrics data to answer important questions about the state of the US housing market. Data are compiled from 500 different markets nationwide. It is important to note that the data are broken up into 2 different sets (price and pricepersqft).
+
+```{r source 3}
+election_2020 <- read_csv("president_county.csv")
+head(election_2020)
+str(election_2020)
+```
+https://www.kaggle.com/datasets/unanimad/us-election-2020
+
+The above dataset conatins county-level data from the 2020 US presidential election. 
