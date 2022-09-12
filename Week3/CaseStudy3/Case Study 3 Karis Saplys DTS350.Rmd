@@ -1,0 +1,56 @@
+---
+title: "Case Study 3 Karis Saplys DTS350"
+author: "Karis Saplys"
+date: "2022-09-05"
+output: 
+  html_document:
+    keep_md: TRUE
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r installing gapminder package}
+#install.packages("gapminder")
+library(gapminder)
+head(gapminder)
+library(readr)
+library(tidyverse)
+library(knitr)
+library(downloader)
+library(dplyr)
+```
+
+```{r removing Kuwait from dataset}
+dtf <- filter(gapminder, country != "Kuwait")
+dtf
+```
+
+```{r plot 1}
+ggplot(data = dtf) +
+  geom_point(mapping = aes(size = pop/100000, x = lifeExp, y = gdpPercap, color = continent, group = year)) +
+  facet_wrap(~ year, nrow = 1) +
+  scale_y_continuous(trans = "sqrt") +
+  scale_size_continuous(name = "Population (100k)") +
+  xlab("Life Expectancy") +
+  ylab("GDP per capita") +
+  theme_bw()
+```
+
+```{r plot 2}
+weighted_avg <- dtf %>%
+  group_by(year, continent) %>%
+  summarise(average = weighted.mean(gdpPercap), population = pop/10000)
+weighted_avg
+
+ggplot(data = dtf, mapping = aes(x = year, y = gdpPercap)) +
+  geom_point(data = dtf, mapping = aes(color = continent)) +
+  geom_line(data = dtf, mapping = aes(color = continent, group = country)) +
+  geom_point(data = weighted_avg, aes(x = year, y = average, size = population)) +
+  geom_line(data = weighted_avg, aes(x = year, y = average)) +
+  facet_wrap(~ continent, nrow = 1) +
+  xlab("Year") + ylab("GDP Per Capita") +
+  scale_size_continuous(name = "Population (100K)", breaks = c(10000, 20000, 30000)) +
+  theme_bw()
+```
