@@ -1,0 +1,76 @@
+---
+title: "Case Study 4 Karis Saplys"
+author: "Karis Saplys"
+date: "2022-09-19"
+output: 
+  html_document:
+    theme: cosmo
+    keep_md: TRUE
+    code_folding: 'hide'
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r loading packages}
+library(lubridate)
+library(readr)
+library(tidyverse)
+library(knitr)
+library(downloader)
+library(dplyr)
+```
+
+```{r loading in the data}
+library(nycflights13)
+?flights
+head(flights)
+str(flights)
+```
+
+2. Which origin airport is best to minimize my chances of a late arrival when I am using Delta Airlines?
+
+From my findings, I can tell you that Newark (EWR) had the fewest delayed Delta Airlines flights. On the other hand, LGA had the most Delta fliughts that were delayed. As such, when using Delta Airlines, I would say that EWR is the best airport to use if you are looking to avoid any kind of late arrival.
+
+```{r data for Delta Airlines}
+freq_delay <- flights %>%
+  filter(carrier == "DL", arr_delay > 0) %>%
+  group_by(origin) %>%
+  count()
+
+freq_delay
+
+delta_delay_plot <- ggplot(data=freq_delay, mapping=aes(origin, n, fill=origin)) +
+  geom_bar(stat="identity", position="dodge") +
+  labs(y = "Number of Delays",
+       x = "Airport of Origin",
+       title = "Number of Delayed Delta Airlines FLights Per Airport") +
+  theme(legend.position = "none")
+
+delta_delay_plot
+```
+
+3. Which destination airport is the worst airport for arrival time?
+
+Among destination airports, CAE (Columbia Metropolitan Airport in South Carolina) was by far the worst airport for arrival times. To gauge this metric, I used the average arrival delay time, in which a negative number denotes a flight that arrived early and a positive number is a flight that arrived late. With the arrival times of all flights taken into account, CAE had an average arrival time of 41.8 minutes delayed! There 15 destination airports nationally with average arrival times being at least 15 minutes or more dleayed on average. 
+
+```{r worst airport by arrival time}
+dest_delay <- flights %>%
+  group_by(dest) %>%
+  summarise(avg_delaytime = mean(arr_delay, na.rm = TRUE)) %>%
+  filter(avg_delaytime > 15)
+
+dest_delay
+
+destplot <- ggplot(data=dest_delay, mapping=aes(dest, avg_delaytime, color=dest)) +
+  geom_point() +
+  labs(y = "Average Delay Time",
+       x = "Destination Airport",
+       title = "Highest Average Arrival Delay Times for Destination Airports (>15mins)") +
+  theme(legend.position = "none")
+
+destplot
+```
