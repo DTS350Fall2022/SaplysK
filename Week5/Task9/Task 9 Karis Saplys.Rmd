@@ -1,0 +1,99 @@
+---
+title: "Task 9 Karis Saplys"
+author: "Karis Saplys"
+date: "2022-09-22"
+output: 
+  html_document:
+    theme: cosmo
+    keep_md: TRUE
+    code_folding: 'hide'
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r loading packages}
+library(lubridate)
+library(readr)
+library(tidyverse)
+library(knitr)
+library(downloader)
+library(dplyr)
+```
+
+```{r loading in the data}
+?ToothGrowth
+head(ToothGrowth)
+str(ToothGrowth)
+```
+
+```{r visualization 1}
+
+plotski1 <- ggplot(data=ToothGrowth, mapping=aes(as.factor(dose), len)) +
+  geom_bar(stat="identity", position="dodge") +
+  labs(y = "Tooth Length",
+       x = "Dosage (mg/day)",
+       title = "Tooth growth") +
+  theme(legend.position = "bottom")
+
+plotski1
+
+```
+This plot is a bar chart of Dosage in mg per day vs. tooth length. While extremely simple, it conveys the necessary information effectively and clearly. I utilize geom_bar as a geometry, and include x and y labs, title, theme, and legend as layers.
+
+```{r visualization 2}
+
+TG <- ToothGrowth %>%
+  mutate(dose = as.factor(dose))
+
+plotski2 <- ggplot(data=TG, mapping=aes(supp, len, color=dose)) +
+  geom_point() +
+  labs(y = "Tooth Length",
+       x = "Supplement type",
+       title = "Tooth growth") +
+  theme(legend.position = "bottom")
+
+plotski2
+
+```
+This plot is a dot plot of tooth length by supplement type, with each point's dosage size indicated by color. The two supplement types, orange juice and ascorbic acid (Vit C) appear on the x axis, and as tooth growth increases, the color of dots indicates dosage increased as well. I utilize geom_point as a geometry, and include x and y labs, title, theme, and legend as layers.
+
+```{r set 2 viz 1}
+
+?mtcars
+head(mtcars)
+str(mtcars)
+
+vroom <- mtcars %>%
+  mutate(cyl = as.factor(cyl))
+
+plotski3 <- ggplot(data=vroom, mapping=aes(wt, mpg, color=cyl)) +
+  geom_point() +
+  labs(y = "MPG",
+       x = "Weight (1000 lbs)",
+       title = "Weight vs. MPG By Number of Cylinders") +
+  theme(legend.position = "bottom")
+
+plotski3
+
+```
+Utilizing the mtcars data set, this plot is a dot plot of cars' weight vs. their mpg, with each vehicle's number of cylinders indicated by color. Cylinder quantities of 4, 6 and 8 appear on the x axis, and as the weight of cars increases, the color of dots indicates the number of cylinders increased in general as well. All in all, the heavier cars got, the lower mpg they registered, which makes sense. I utilize geom_point as a geometry, and include x and y labs, title, theme, and legend as layers.
+
+```{r set 2 viz 2}
+
+plotski4 <- ggplot(data=vroom, mapping=aes(mpg, qsec)) +
+  geom_point(color= "red") +
+  geom_smooth(method = "lm") +
+  labs(y = "1/4 Mile Time",
+       x = "MPG",
+       title = "Are Fuel-Efficient Cars The Fastest?",
+       subtitle = "Absolutely Not.") +
+  theme(legend.position = "bottom") 
+
+plotski4
+
+```
+Utilizing the mtcars data set, this plot is a dot plot of cars' mpg vs. their 1/4 mile time, with the goal of seeing if the most fuel efficient cars are also among the fastest. All in all, the scatter plot clearly indicates that the most fuel efficient cars (those with mpg readings in excess of 30) are not among the fastest, and that the fastest 1/4 mile times belong to cars that are much less fuel efficient.I utilize geom_point as a geometry to display each data point, while also adding a linear regression using geom_smooth to illustrate the relationship between the variables. Labs for X and Y, title, subtitle, theme, and legend are added as layers.
