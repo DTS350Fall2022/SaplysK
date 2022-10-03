@@ -1,0 +1,60 @@
+---
+title: "Task 11 Karis Saplys"
+author: "Karis Saplys"
+date: "2022-10-03"
+output: 
+  html_document:
+    theme: cosmo
+    keep_md: TRUE
+    code_folding: 'hide'
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r loading in packages}
+library(lubridate)
+library(readr)
+library(tidyverse)
+library(knitr)
+library(downloader)
+library(dplyr)
+```
+
+```{r reading in the data}
+movie_data <- tempfile()
+download("https://raw.githubusercontent.com/fivethirtyeight/data/master/fandango/fandango_score_comparison.csv", movie_data, mode = "wb")
+MovieData <- read_csv(movie_data)
+
+str(MovieData)
+head(MovieData)
+tail(MovieData)
+```
+
+```{r tidying the data}
+tidy_movdat <- MovieData %>%
+  select(FILM, RT_norm, Metacritic_norm, IMDB_norm, Fandango_Ratingvalue) %>%
+  pivot_longer(2:5, names_to = "websites", values_to = "ratings") %>%
+  select(FILM, websites, ratings)
+
+tidy_movdat
+```
+
+```{r first 20 rows of tidy table}
+first_20 <- head(tidy_movdat, n = 20)
+first_20
+```
+
+```{r comparing movie ratings viz}
+ggplot(first_20, aes(x = websites, y = ratings, color = FILM)) +
+  geom_point() +
+  labs(y = "Rating",
+       x = "Website",
+       title = "Movie Ratings By Website") +
+  theme_bw()
+```
+
+For my visualization I chose to use a geom_point, in which each point represented a movie's score on each of four different movie rating websites. Ratings are scaled from 1 to 5, and a total 5 movies are rated by each website in the first 20 rows of my tidy table and associated visualization.
