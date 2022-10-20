@@ -1,0 +1,83 @@
+---
+title: "Task 14 Karis Saplys"
+author: "Karis Saplys"
+date: "2022-10-20"
+output: 
+  html_document:
+    theme: cosmo
+    keep_md: TRUE
+    code_folding: 'hide'
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#loading in the packages
+```{r}
+library(tidyverse)
+library(knitr)
+library(downloader)
+library(dplyr)
+library(lubridate)
+library(ggplot2)
+library(grid)
+library(corrplot)
+library(readr) 
+library(haven)
+library(readxl)
+library(stringi)
+library(stringr)
+```
+
+#Creating a temp file for the bible data
+```{r}
+bibledata <- tempfile()
+download.file("https://github.com/WJC-Data-Science/DTS350/raw/master/bible.csv",bibledata, mode="wb")
+bibledata
+bible <- read_csv(bibledata)
+head(bible)
+```
+
+#Creating a word counter function
+```{r}
+wordcount <- bible %>%
+  mutate(word_count =
+           sapply(bible$scripture_text, function(x) length(unlist(strsplit(as.character(x), "\\W+"))))
+  )
+```
+
+#Finding the Old Testament average
+```{r}
+OldTest <- wordcount %>%
+  subset(volume_id == 1)
+mean(OldTest$word_count)
+```
+
+#Finding the New Testament average
+```{r}
+NewTest <- wordcount %>%
+  subset(volume_id == 2)
+mean(NewTest$word_count)
+```
+
+#Frequency of the word LORD 
+```{r}
+str_count(OldTest, "(?i)lord")
+str_count(NewTest, "(?i)lord")
+```
+
+#Visualization for Question 3
+```{r}
+ggplot(data = NewTest, aes(x = verse_number, y = word_count, fill = book_title)) +
+  geom_col() +
+  facet_wrap(~book_title, scales = 'free') +
+  theme(legend.position = "none") +
+  labs(x = "Verse Number",
+       y = "Word Count",
+       title = "New Testament Word Average By Verse Number")
+```
+
+Outlined in the code above arfe my findings, answering the 3 central questions of this task. First, on the issue of average verse length in number of words, the Old Testament had an average verse legth of 26.42 words. Contrarily, the New Testament had an average verse length of 22.71 words. While slightly different, the change is not too drastic to draw any conclusions in my opinion. On the issue of how often the word LORD (case insensitive) is used in the Old and New TEstaments respectively, the word appeared 7273 times in the Old Book while it appeared only 736 times in the New Book. This difference is drastic, and could possibly be attributed to the fact that the early books of the bible seek to establish God and his character and thus speak more about God as the Lord than the New Testament, in which most books speak on the life and work of Jesus with God the Lord already established. Finally, on the issue of word count distribution by verse for each book in the New Testament, one can see that early verses in these books typicall have a higher average word count. This may be a stylistic preference of the Bible's authors, or it may be because early verses are in fact more detailed and in-depth. I am not entirely sure of the reasoning.
