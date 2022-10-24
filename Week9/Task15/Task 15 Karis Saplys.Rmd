@@ -1,0 +1,102 @@
+---
+title: "Task 15 Karis Saplys"
+author: "Karis Saplys"
+date: "2022-10-24"
+output: 
+  html_document:
+    theme: cosmo
+    keep_md: TRUE
+    code_folding: 'hide'
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(knitr)
+library(downloader)
+library(dplyr)
+library(lubridate)
+library(ggplot2)
+library(grid)
+library(corrplot)
+library(readr) 
+library(haven)
+library(readxl)
+library(stringi)
+library(stringr)
+
+#install.packages("riem")
+library(riem)
+```
+
+```{r}
+temp_carwash <- tempfile()
+download("https://github.com/WJC-Data-Science/DTS350/raw/master/carwash.csv", temp_carwash, mode = "wb")
+carwash <- read_csv(temp_carwash)
+head(carwash)
+str(carwash)
+```
+
+Converting to Mountain Time Zone
+```{r}
+TZcarwash <- with_tz(carwash, tzone = "US/Mountain")
+head(TZcarwash)
+```
+
+Using ceiling_date to create new hour variable
+```{r}
+GCarWash <- TZcarwash %>%
+  mutate(hour = ceiling_date(time, "hour"))
+head(GCarWash)
+```
+
+Totals for sales by hour
+```{r}
+salesbyhour <- GCarWash %>%
+  group_by(hour) %>%
+  summarise(across(amount, sum))
+salesbyhour
+```
+
+Getting the corresponding temperatures
+```{r}
+TempsDat <- riem_measures(station = "RXE",  date_start ="2016-05-13" , date_end  ="2016-07-08") %>%
+  with_tz(tzone = "US/Mountain") %>%
+  drop_na(tmpf) %>%
+  mutate(hour = ceiling_date(valid, "hour"))
+head(TempsDat)
+```
+
+New hourly variable to match car wash data
+```{r}
+temps_hour <- TempsDat %>%
+  with_tz(tzone = "US/Mountain") %>%
+  filter(tmpf != "") %>%
+  select(hour, tmpf)
+temps_hour
+```
+
+Merging Datasets
+```{r}
+MergedDat <- merge(temps_hour, salesbyhour, by = "hour") %>%
+  mutate(z_hour = hour(hour)) %>%
+  select(tmpf, amount, z_hour) %>%
+  group_by(z_hour) 
+head(MergedDat)
+```
+
+Visualization of sales and temperature by hour of the day
+```{r}
+saleshour <- ggplot(data = MergedDat, mapping = aes(x = z_hour, y = amount, color = tmpf)) +
+  geom_point(size = 7, alpha=0.5) +
+  scale_color_gradient(low = "#800080", high = "#FF00FF") +
+  labs(title = "Relationship between Sales and Temperature", subtitle = "Grouped by Hour of the Day (24-Hour Clock)", x = "Time of Day (Hour)", y = "Sales Amounts in $", fill = "Temperature in Fahrenheit") +
+ theme()
+  
+saleshour
+```
