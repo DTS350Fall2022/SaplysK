@@ -1,0 +1,118 @@
+---
+title: "Case Study 10 Karis Saplys"
+author: "Karis Saplys"
+date: "2022-11-08"
+output: 
+  html_document:
+    theme: cosmo
+    keep_md: TRUE
+    code_folding: 'hide'
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(sf)
+library(USAboundaries)
+library(USAboundariesData)
+library(ggsflabel)
+library(remotes)
+library(devtools)
+library(ggplot2)
+library(maps)
+library(knitr)
+library(downloader)
+library(dplyr)
+library(lubridate)
+library(plotly)
+
+#install.packages('gridExtra')
+library(gridExtra)
+```
+
+```{r}
+permit_data <- tempfile()
+download("https://raw.githubusercontent.com/WJC-Data-Science/DTS350/master/permits.csv", 
+         permit_data, mode = "wb")
+permits <- read_csv(permit_data)
+```
+
+```{r}
+head(permits)
+counties <- us_counties()
+```
+
+```{r}
+FIPSsetup<-permits%>%
+  mutate(state=as.character(state), stateFIPS=str_pad(state, 2,pad="0")) %>%
+  mutate(county=as.character(county), countyFIPS=str_pad(county, 3,pad="0"))
+FIPSsetup
+```
+
+```{r}
+FIPS <- FIPSsetup %>%
+  mutate(geoid=paste0(stateFIPS,countyFIPS))
+```
+
+```{r}
+county_FIPS_data <- merge(FIPS,counties, by = "geoid") %>%
+  group_by(state_name,year) %>%
+  summarise(across(value, sum))
+```
+
+```{r}
+USA <- ggplot(data = county_FIPS_data, aes(x = year, y = value, color = state_name)) +
+  geom_line() +
+  geom_point() +
+  labs(title="USA", x = "Year", y = "Permit Amount") +
+  theme_bw() +
+  theme(legend.position = 'none') 
+USA
+```
+
+```{r}
+Missouri <- county_FIPS_data %>%
+  filter(state_name == 'Missouri') %>%
+  ggplot(aes(x = year, y = value)) +
+  geom_point() +
+  geom_line() +
+  labs(title="Missouri",x = 'Year', y = 'Permit Amount') +
+  theme_bw() +
+  theme(legend.position = 'none')
+Missouri
+```
+
+```{r}
+Florida <- county_FIPS_data %>%
+  filter(state_name == 'Florida') %>%
+  ggplot(aes(x = year, y = value)) +
+  geom_point() +
+  geom_line() +
+  labs(title="Florida",x = 'Year', y = 'Permit Amount') +
+  theme_bw() +
+  theme(legend.position = 'none')
+Florida
+```
+
+```{r}
+California <- county_FIPS_data %>%
+  filter(state_name == 'California') %>%
+  ggplot(aes(x = year, y = value)) +
+  geom_point() +
+  geom_line() +
+  labs(title="California",x = 'Year', y = 'Permit Amount') +
+  theme_bw() +
+  theme(legend.position = 'none')
+California
+```
+
+```{r}
+grid.arrange(USA, Missouri, Florida, California, nrow = 3)
+```
+
+To illustrate the onset of the 2008 subprime mortgage and financial crisis, as evidenced by the collapse of new building permits nationwide, I chose to create visualizations that map county-level data, amalgamated into state-level data, for 3 states that I believe have data that are indicative of the overall nationwide trend, and tell a particular story for a representative region of the United States during this time. In addition, I included a line graph of building permit amounts for each state nationwide over time to show data for the USA as a whole. For my 3 representative states, I chose Missouri, FLorida, and California. In addition to each representing a distinct region of the US, these states all have an important story to tell with their permit data. My curent State of residence, Missouri, certainly experienced a fall in building permits in line with the nationwide trends of the onset of the recession. However, with permit numbers not being massive to begin with, some might argue that this leaves something to be desired as far as conclusions are concerned. To address this, I proceeded to look at the state of FLorida: a state widely considered to have experienced the worst collapse of the crisis due to housing bubbles in Miami, Tampa, and Orlando all bursting. In these data, the trend is even more drastic than national trends indicate. They show a higher peak pemit amount than any sate, with a steeper drop in permits than any other state. FInally, I looked at California, which I considered to be not only a good indicator of the West Coast's state of affairs, but also the nation's as a whole. Being the most populous state in the union, California acts as a natural bellweathe for trends typically. Her, while a dop off was seen, it was not nearly as drastic or sever as other states such as Florida. Here, the drop off was slow and steady, likely due to the fact that high housing values kept prices propped-up substantially longer than elsewhere. BY 2010, California's permit numbers even begin to tick upwards again.
