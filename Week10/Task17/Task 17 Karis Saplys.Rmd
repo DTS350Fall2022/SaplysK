@@ -1,0 +1,87 @@
+---
+title: "Task 17 Karis Saplys"
+author: "Karis Saplys"
+date: "2022-11-08"
+output: 
+  html_document:
+    theme: cosmo
+    keep_md: TRUE
+    code_folding: 'hide'
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(ggplot2)
+library(readr)
+library(knitr)
+library(tidyverse)
+library(dplyr)
+library(forcats)
+library(downloader)
+library(corrplot)
+library(tidyquant)
+library(timetk)
+library(dygraphs)
+```
+
+Friend's Picks: AMZN, META, SNAP
+
+My Picks: XOM, CVX, AAPL
+
+```{r}
+(Amazon <- tq_get("AMZN", get = "stock.prices"))
+(META <- tq_get("META", get = "stock.prices"))
+(SNAP <- tq_get("SNAP", get = "stock.prices"))
+
+(Exxon <- tq_get("XOM", get = "stock.prices"))
+(Chevron <- tq_get("CVX", get = "stock.prices"))
+(Apple <- tq_get("AAPL", get = "stock.prices"))
+```
+
+```{r}
+friend <- tq_get(c("AMZN", "META", "SNAP"), get = "stock.prices", from = "2021-10-01", to = today())
+head(friend)
+
+mine <- tq_get(c("XOM", "CVX", "AAPL"), get = "stock.prices", from = "2021-10-01", to = today())
+head(mine)
+
+combined <- tq_get(c("AMZN", "META", "SNAP", "XOM", "CVX", "AAPL"), get = "stock.prices", from = "2021-10-01", to = today())
+head(combined)
+```
+
+```{r}
+stockprices <- ggplot(data = combined, mapping = aes(x = date, y = close, color = symbol)) +
+  geom_line()
+
+stockprices
+```
+
+```{r}
+stockpriceadjusted <- combined %>%
+  select(symbol, date, adjusted) %>%
+  pivot_wider(names_from = symbol, values_from = adjusted) %>%
+  tk_xts(date_var = date)
+head(stockpriceadjusted)
+```
+
+```{r interactive_viz}
+dygraph(stockpriceadjusted, main = "Straw Broom Chart Percent") %>%
+  dyRebase(percent = TRUE) %>%
+  dyShading(from = "2021-10-01", to = today()) %>%
+  dyRangeSelector()
+```
+
+```{r interactive_viz_over_time}
+dygraph(stockpriceadjusted, main = "Straw Broom Chart") %>%
+  dyRebase(value = 1000) %>% 
+  dyAnnotation("2021-10-01", text = "A") %>%
+  dyShading(from = "2021-10-01", to = today()) %>%
+  dyRangeSelector()
+```
+
+It is clear beyond any reasonable doubt that I have dominated my friend with my stock picks in this competition. While my pick of Apple may hve been flat, barely gaining any value at all if not slightly losing value, my investments in oil and gas with Exxon-Mobil and Chevron have reaped huge rewards. The largest percentage-wise gaining stock in the competition was XOM at nearly 95%. My friend chose poorly, investing in e-commerce with AMZN, as well as hammered social media brands META and SNAP. This was a lopesided win for me.
