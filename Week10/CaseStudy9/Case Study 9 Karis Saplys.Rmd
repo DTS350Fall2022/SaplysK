@@ -1,0 +1,78 @@
+---
+title: "Case Study 9 Karis Saplys"
+author: "Karis Saplys"
+date: "2022-11-08"
+output: 
+  html_document:
+    theme: cosmo
+    keep_md: TRUE
+    code_folding: 'hide'
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(ggplot2)
+library(readr)
+library(knitr)
+library(tidyverse)
+library(dplyr)
+library(forcats)
+library(downloader)
+library(corrplot)
+library(tidyquant)
+library(timetk)
+library(dygraphs)
+```
+
+WILL CHANGE TICKERS_TODAY TO TICKERS SUPPLIED BY FRIEND AT MEETING
+Key thing here is that the code is editable.
+```{r}
+tickers_today <- tq_get(c("CXW", "F", "GM", "JCP", "KR", "WDC", "NKE","T", "WDAY", "WFC", "WMT"),get = "stock.prices", from = today()-years(5))
+head(tickers_today)
+```
+
+```{r}
+tickers <- tickers_today %>%
+  group_by(symbol) %>%
+  mutate(starting = open[1]) %>%
+  select(symbol,date,open,close,volume,starting) %>%
+  mutate(value = starting - close) %>%
+  select(symbol,date,value) %>%
+  pivot_wider(names_from = symbol, values_from = value) %>%
+  tk_xts(date_var = date)
+head(tickers)
+```
+
+```{r}
+stockPrices <- tickers_today %>%
+  select(symbol, date, adjusted) %>%
+  pivot_wider(names_from = symbol, values_from = adjusted) %>%
+  tk_xts(date_var = date)
+head(stockPrices)
+```
+
+Interactive viz's
+```{r}
+dygraph(tickers,main = "Stock Performance (Win/Loss ($))")
+
+dygraph(stockPrices, main = "Stock Performance (Percentage)") %>%
+  dyRebase(percent = TRUE) 
+```
+
+Looking here at VOLUME
+```{r}
+Volume <- tickers_today %>%
+  select(symbol,date,volume)
+head(Volume)
+
+ggplot(Volume,mapping = aes(x = date,y=volume,fill=symbol)) +
+  geom_col() +
+  facet_wrap(~symbol, scales = "free")
+```
+
+All visualizations provide appropriate data and info on the supplied list of tickers. Furthermore, our investigation of volume clearly shows which stocks may be "hot" or "cold" based on how often they are being bought and sold.
