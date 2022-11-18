@@ -1,0 +1,67 @@
+---
+title: "Task 20 Karis Saplys"
+author: "Karis Saplys"
+date: "2022-11-18"
+output: 
+  html_document:
+    theme: cosmo
+    keep_md: TRUE
+    code_folding: 'hide'
+editor_options: 
+  chunk_output_type: console
+---
+
+#RECREATING CASE STUDY 4 WITH ANIMATIONS ON 'DELTA DELAYS BY NYC ORIGIN AIRPORT' GRAPH 
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r loading packages}
+library(lubridate)
+library(readr)
+library(tidyverse)
+library(knitr)
+library(downloader)
+library(dplyr)
+
+library(ggplot2)
+library(gganimate)
+library(gifski)
+```
+
+```{r loading in the data}
+library(nycflights13)
+?flights
+head(flights)
+str(flights)
+```
+
+2. Which origin airport is best to minimize my chances of a late arrival when I am using Delta Airlines?
+
+From my findings, I can tell you that Newark (EWR) had the fewest delayed Delta Airlines flights. On the other hand, LGA had the most Delta fliughts that were delayed. As such, when using Delta Airlines, I would say that EWR is the best airport to use if you are looking to avoid any kind of late arrival.
+
+```{r DeltaDelaysAnimViz}
+freq_delay <- flights %>%
+  filter(carrier == "DL", arr_delay > 0) %>%
+  group_by(origin) %>%
+  count()
+freq_delay
+
+delta_delay_plot <- ggplot(data=freq_delay, mapping=aes(origin, n, fill=origin)) +
+  geom_bar(stat="identity", position="dodge") +
+  labs(y = "Number of Delays",
+       x = "Airport of Origin",
+       title = "Number of Delayed Delta Airlines FLights Per Airport") +
+  theme(legend.position = "none")
+
+delta_delay_plot + transition_states(n,
+    transition_length = 2,
+    state_length = 1
+  ) +
+  enter_fade() +
+  exit_shrink() +
+  ease_aes('sine-in-out')
+
+anim_save("DeltaDelaysAnimViz.gif")
+```
