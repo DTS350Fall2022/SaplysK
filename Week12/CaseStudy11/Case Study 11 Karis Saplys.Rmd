@@ -1,0 +1,130 @@
+---
+title: "Case Study 11 Karis Saplys"
+author: "Karis Saplys"
+date: "2022-11-18"
+output: 
+  html_document:
+    theme: cosmo
+    keep_md: TRUE
+    code_folding: 'hide'
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(ggplot2)
+library(readr)
+library(knitr)
+library(tidyverse)
+library(dplyr)
+library(forcats)
+library(downloader)
+library(corrplot)
+library(tidyquant)
+library(stringr)
+library(plotly)
+library(gridExtra)
+library(USAboundaries)
+library(sf)
+library(leaflet)
+```
+
+```{r}
+permits <- read_csv("https://github.com/WJC-Data-Science/DTS350/raw/master/permits.csv")
+head(permits)
+```
+
+```{r}
+permitsPA <- permits %>%
+  filter(StateAbbr == "PA", year == 2010)
+head(permitsPA)
+```
+
+```{r}
+latlong <- read_csv("County_Latitude___Longitude_Points_For_Each_County_Static.csv")
+head(latlong)
+
+latlong1 <- latlong %>%
+  mutate(countyname1 = as.character(`County Name`))
+head(latlong1)
+```
+
+```{r}
+permitsPA1 <- permitsPA %>%
+  mutate(countyname = as.character(countyname))
+head(permitsPA1)
+permitsPA2 <- permitsPA1 %>%
+  mutate(countyname1 = str_sub(countyname, end = -8))
+  
+str(permitsPA2)
+str(latlong1)
+```
+
+```{r}
+combined <- left_join(latlong1, permitsPA2, by = 'countyname1')
+head(combined)
+
+combined1 <- combined %>%
+  arrange(desc(value)) %>%
+  mutate(value = as.character(value))
+  
+  
+head(combined1)
+```
+
+```{r}
+topcounty <- combined1 %>%
+  filter(row_number() == 1)
+topcounty
+```
+
+```{r}
+PA <- us_counties(states = 'PA')
+PAcounties <- ggplot(PA) +
+  geom_sf()
+PAcounties
+```
+
+```{r}
+combined1$quartile <- ntile(combined1$value, 4)
+combined1
+ntile4 <- combined1 %>%
+  filter(quartile == 4)
+ntile4
+ntile3 <- combined1 %>%
+  filter(quartile == 3)
+ntile3
+ntile2 <- combined1 %>%
+  filter(quartile == 2)
+ntile2
+ntile1 <- combined1 %>%
+  filter(quartile == 1)
+ntile1
+```
+
+FOR REFERENCE, IN THIS CASE:
+
+Quartile 4 is top 25% of counties by number of building permits.
+Quartile 3 is top 25-50%  of counties by number of building permits.
+Quartile 2 is bottom 25-50%  of counties by number of building permits.
+Quartile 1 is bottom 25%  of counties by number of building permits.
+
+```{r vizz}
+leaflet(combined1) %>%
+  addTiles() %>%
+  addCircleMarkers(data = ntile4, radius = 7, color = 'blue', stroke = FALSE, fillOpacity = 1, popup = ~value) %>%
+  addCircleMarkers(data = ntile3, radius = 7, color = 'red', stroke = FALSE, fillOpacity = 1, popup = ~value) %>%
+  addCircleMarkers(data = ntile2, radius = 7, color = 'green', stroke = FALSE, fillOpacity = 1, popup = ~value) %>%
+  addCircleMarkers(data = ntile1, radius = 7, color = 'white', stroke = FALSE, fillOpacity = 1, popup = ~value) %>%
+  addCircleMarkers(data = topcounty, radius = 7, color = 'yellow', stroke = FALSE, fillOpacity = 1, popup = ~value) 
+
+head(combined1) %>%
+  filter(year==2010) %>%
+  select("County Name", "value", "quartile")
+```
+
+From my visualization, it is clear to see that Allegheny COunty and the Pittsburg metropolitan area are the most desirable place to live in Pennsylvania by the volume of new home building permits. The high number of new permits is indicative not only of urban sprawl and bussle, but also the pesence of available jobs and desirable living ammenities. Moreover, consistent growth in Allegheny COunty likely means that property values will hold or appreciate over the course of the next few years or even decades.
