@@ -1,0 +1,127 @@
+---
+title: "Case Study 12"
+author: "Karis Saplys"
+date: "2022-11-22"
+output: 
+  html_document:
+    theme: cosmo
+    keep_md: TRUE
+    code_folding: 'hide'
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(knitr)
+library(downloader)
+library(tidyverse)
+library(USAboundaries)
+library(USAboundariesData)
+library(ggsflabel)
+library(remotes)
+library(devtools)
+library(ggplot2)
+library(maps)
+library(leaflet)
+library(ggplot2)
+library(gganimate)
+library(gifski)
+
+library(timetk)
+library(dygraphs)
+library(tidyquant)
+```
+
+```{r}
+avocados <- read.csv("avocados.csv")
+head(avocados)
+str(avocados)
+
+avocados$Date <- as.Date(avocados$Date)
+
+unique(avocados$region)
+unique(avocados$year)
+
+cities <- avocados %>%
+  filter(region %in%  c("Albany","Atlanta","BaltimoreWashington","Boise","Boston",
+ "BuffaloRochester","Charlotte","Chicago","CincinnatiDayton","Columbus","DallasFtWorth",
+ "Denver","Detroit","GrandRapids","HarrisburgScranton","HartfordSpringfield","Houston",
+ "Indianapolis","Jacksonville","LasVegas","LosAngeles","Louisville","MiamiFtLauderdale",
+ "Nashville","NewOrleansMobile","NewYork","Orlando","Philadelphia","PhoenixTucson",
+ "Pittsburgh","Portland","RaleighGreensboro","RichmondNorfolk","Roanoke","Sacramento",         "SanDiego","SanFrancisco","Seattle","Spokane","StLouis","Syracuse","Tampa"))
+
+states <- avocados %>%
+   filter(region %in%  c("California","SouthCarolina","WestTexNewMexico"))
+
+usregions <- avocados %>%
+   filter(region %in%  c("GreatLakes","Midsouth","Northeast","NorthernNewEngland","Plains",
+                         "SouthCentral","Southeast","West"))
+head(usregions)
+
+totalus <- avocados %>%
+   filter(region == "TotalUS")
+head(totalus)
+```
+
+```{r}
+usplot <- ggplot(data = totalus, mapping = aes(x = Date, y = AveragePrice)) +
+  geom_line() + 
+  labs(title = "Average Avocado Prices Over Time", subtitle = "Total United States", x = "Date", y = "Average Avocado Price (USD)") +
+  theme(plot.title = element_text(hjust = .5)) +
+  theme(plot.subtitle = element_text(hjust = .5))
+usplot
+
+usplot + transition_reveal(Date)
+```
+
+```{r}
+regionsplot <- ggplot(data = usregions, mapping = aes(x = Date, y = AveragePrice, color = Total.Volume)) +
+  geom_point() +
+  facet_wrap(~region) +
+  labs(title = "Average Avocado Prices Over Time", subtitle = "For Different US Regions", x = "Date", y = "Average Avocado Price (USD)") +
+  theme(plot.title = element_text(hjust = .5)) +
+  theme(plot.subtitle = element_text(hjust = .5))
+regionsplot
+
+regionsplot + transition_time(Date) + shadow_mark(size = 0.5)
+```
+
+```{r}
+cityplot <- ggplot(data = cities, mapping = aes(x = Date, y = AveragePrice, color = Total.Volume)) +
+  geom_line() +
+  facet_wrap(~region) +
+  labs(title = "Average Avocado Prices Over Time", subtitle = "From Various US Cities", x = "Date", y = "Average Avocado Price (USD)") +
+  theme(plot.title = element_text(hjust = .5)) +
+  theme(plot.subtitle = element_text(hjust = .5))
+  
+cityplot
+```
+From what I can observe, Pittsburgh seems to be the most ideal city to relocate to based purely on the local average price of avocados. Prices in the city have remained consistently low and have even defied some national trends that sent prices jumping in other major US cities.
+
+
+ANALYSIS OF STOCK PRICES FOR 2 NATIONAL GROWERS
+```{r}
+avocado_stock <- tq_get(c("CVGW", "AVO"), get = "stock.prices", from = today()-years(2), to = today())
+head(avocado_stock)
+```
+
+```{r}
+avocadostockplot <- avocado_stock %>%
+  select(symbol, date, adjusted) %>%
+  pivot_wider(names_from = symbol, values_from = adjusted) %>%
+  tk_xts(date_var = date)
+head(avocadostockplot)
+```
+
+```{r}
+dygraph(avocadostockplot, main = "Avocado Stock Prices for Calavo Growers (CVGW) and Mission Produce (AVO)") %>%
+  dyRebase(percent = TRUE) %>%
+  dyShading(from = today()-years(2), to = today()) %>%
+  dyRangeSelector()
+```
+
+I thought all of my visualizations came about in a pretty intuitive fashion, as they presented all the necessary information requested, and were visually subset to discern the various regions/cities of interest. In all of my visualizations, the idea of obtaining data that showed the prices and price movements of avocados over time in specific locations was at the forefront. All in all, based on the requested metrics, I believe that my visualizations help my friend make an informed decision on where he should move to and seek employment.
